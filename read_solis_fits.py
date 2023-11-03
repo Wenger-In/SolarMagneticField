@@ -12,7 +12,7 @@ for root, dirs, files in os.walk(solis_dir):
             file_path = os.path.join(root, file)
             fits_file = fits.open(file_path)
             fits_file.info()
-            primary_hdu = fits_file[0]
+            primary_hdu = fits_file[0] 
             data = primary_hdu.data
             fits_file.close()
             save_name = 'cr' + str(file[17:21]) + '.fits'
