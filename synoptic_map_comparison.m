@@ -17,7 +17,7 @@ FontSize = 15;
 figure_width = 1600;
 figure_height = 900;
 
-for cr = 2100 : 2104
+for cr = 2097 : 2104
     close all;
 
     %% raw synoptic map
@@ -30,6 +30,7 @@ for cr = 2100 : 2104
         if i_obs == 1 % WSO [.dat]
             Br_sub = importdata(obs_file); % [uT]
             Br_sub = Br_sub / 100; % [G]
+            Br_sub = flipud(Br_sub); % filp up-down
             lon_sub = linspace(360,0,73);
             lat_sin = linspace(-14.5/15,14.5/15,30);
         else
@@ -131,17 +132,15 @@ for cr = 2100 : 2104
         grid on; hold on
 
         % regression
-        if i_obs == 3 || i_obs == 4
-            nan_index = isnan(Br_interp_hmi) | isnan(Br_interp_sub);
-            Br_interp_hmi(nan_index) = 0;
-            Br_interp_sub(nan_index) = 0;
-            fit = polyfit(Br_interp_hmi, Br_interp_sub, 1);
-            Br_fit_sub = polyval(fit, Br_interp_hmi);
-            plot(Br_interp_hmi,Br_fit_sub,'r','LineWidth',LineWidth)
-            % calculate RMSE
-            cc = corrcoef(Br_interp_sub, Br_fit_sub);
-            legend(['cc=',num2str(cc(2))],['k=',num2str(fit(1))],'Location','southeast')
-        end
+        nan_index = isnan(Br_interp_hmi) | isnan(Br_interp_sub);
+        Br_interp_hmi(nan_index) = 0;
+        Br_interp_sub(nan_index) = 0;
+        fit = polyfit(Br_interp_hmi, Br_interp_sub, 1);
+        Br_fit_sub = polyval(fit, Br_interp_hmi);
+        plot(Br_interp_hmi,Br_fit_sub,'r','LineWidth',LineWidth)
+        % calculate RMSE
+        cc = corrcoef(Br_interp_sub, Br_fit_sub);
+        legend(['cc=',num2str(cc(2))],['k=',num2str(fit(1))],'Location','southeast')
 
         xlabel('HMI [G]')
         ylabel([obs_title{i_obs},'[G]'])
