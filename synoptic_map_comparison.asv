@@ -30,12 +30,10 @@ for cr = 2097 : 2097
             Br_sub = Br_sub / 100; % [G]
             lon_sub = linspace(360,0,73);
             lat_sin = linspace(-14.5/15,14.5/15,30);
-            clim = 10;
         else
             Br_sub = fitsread(obs_file); % [G]
             lon_sub = linspace(0,360,lon_res(i_obs));
             lat_sin = linspace(-1,1,lat_res(i_obs));
-            clim = 30;
         end
         lat_sub = asind(lat_sin);
         Br_raw{i_obs} = Br_sub;
@@ -46,6 +44,11 @@ for cr = 2097 : 2097
     % plot figure
     figure();
     for i_obs = 1 : 5
+        if i_obs == 1
+            clim = 10;
+        else
+            clim = 30;
+        end
         subplot('Position',[0.03+0.33*mod(i_obs-1,3),0.5-0.5*floor((i_obs-0.1)/3),0.3,0.5])
 %         subplot(2,3,i_obs)
         h = pcolor(grid_raw{1, i_obs},grid_raw{2, i_obs},Br_raw{i_obs});
@@ -69,6 +72,10 @@ for cr = 2097 : 2097
     end
 
     %% interpolated synoptic map
+    hmi_lon = grid_raw{1,5};
+    hmi_lat = grid_raw{2,5};
+    [std_lat_index, std_lon_index] = find(abs(sind(hmi_lat))<=14.5/15);
+    std_lon = hmi_lon;
     Br_interp = cell(1,4);
 
     % interpolate into HMI grid
@@ -108,27 +115,27 @@ for cr = 2097 : 2097
         Br_interp_sub = Br_interp{i_obs}(:);
         Br_hmi = Br_raw{5}(:);
         scatter(Br_hmi,Br_interp_sub,2,'filled')
-        hold on
+        grid on; hold on
 
         % regression
-        if i_obs == 3 or 4
+        if i_obs == 3 || i_obs == 4
             nan_index = isnan(Br_hmi) | isnan(Br_interp_sub);
             Br_hmi(nan_index) = 0;
             Br_interp_sub(nan_index) = 0;
             fit = polyfit(Br_hmi, Br_interp_sub, 1);
             Br_fit_sub = polyval(fit, Br_hmi);
             plot(Br_hmi,Br_fit_sub,'r','LineWidth',LineWidth)
-            grid on
             % calculate RMSE
-            residuals = Br_interp_sub - Br_fit_sub;
-            rmse = sqrt(mean(residuals.^2));
+            cc = corrcoef(Br_interp_sub, Br_fit_sub);
+            legend(['cc=',num2str(cc(2))],['k=',num2str(fit(1))],'Location','southeast')
         end
 
         xlabel('HMI [G]')
         ylabel([obs_title{i_obs},'[G]'])
-        title(['CR',num2str(cr),'-RMSE=',num2str(rmse)])
-
+        sgtitle(['CR',num2str(cr)],'FontSize',FontSize)
         set(gca,'LineWidth',LineWidth,'FontSize',FontSize)
+
+        annotation('textbox', [0.8, 0.8, 0.2, 0.2], 'String', 'plotted by synoptic\_map\_comparison.m', 'FitBoxToText', 'on');
     end
 end
 
